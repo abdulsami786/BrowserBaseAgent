@@ -1,1 +1,1 @@
-@AGENTS.md
+D:/BrowserBaseAgent/AGENTS.md
