@@ -8,6 +8,15 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+# ReactFlow — don't trust training data
+
+This project uses ReactFlow (React Flow / `@xyflow/react`) for the canvas. Its
+APIs, components, hooks, and props change across versions and may differ from
+your training data. Before writing or changing any ReactFlow code, fetch and
+consult the official LLM docs index at https://reactflow.dev/llms.txt and follow
+the linked pages relevant to what you're building. Do not rely on memory for
+component names, props, hook signatures, or usage patterns.
+
 # Database types
 
 Derive database types from the Drizzle schema — never hand-write custom or partial
