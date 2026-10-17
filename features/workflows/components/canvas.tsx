@@ -1,26 +1,23 @@
 "use client"
 
-import { useCallback, useState, useSyncExternalStore } from "react"
+import { useSyncExternalStore } from "react"
 import { useTheme } from "next-themes"
+import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow";
 import {
-  addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
   Background,
   Controls,
   ReactFlow,
   type ColorMode,
   type Edge,
   type NodeTypes,
-  type OnConnect,
-  type OnEdgesChange,
-  type OnNodesChange,
 } from "@xyflow/react"
 
 import { StepNode } from "@/features/workflows/components/step-node"
 import type { StepNodeType } from "@/features/workflows/nodes/node-registry"
 
-import "@xyflow/react/dist/style.css"
+import "@xyflow/react/dist/style.css";
+import "@liveblocks/react-ui/styles.css";
+import "@liveblocks/react-flow/styles.css";
 
 const nodeTypes: NodeTypes = { step: StepNode }
 
@@ -52,23 +49,12 @@ export function Canvas() {
   const colorMode: ColorMode =
     mounted && resolvedTheme === "dark" ? "dark" : "light"
 
-  const [nodes, setNodes] = useState(initialNodes)
-  const [edges, setEdges] = useState(initialEdges)
-
-  const onNodesChange: OnNodesChange<StepNodeType> = useCallback(
-    (changes) =>
-      setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
-    []
-  )
-  const onEdgesChange: OnEdgesChange = useCallback(
-    (changes) =>
-      setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
-    []
-  )
-  const onConnect: OnConnect = useCallback(
-    (params) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
-    []
-  )
+  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDelete } =
+    useLiveblocksFlow<StepNodeType, Edge>({
+      suspense: true,
+      nodes: { initial: initialNodes },
+      edges: { initial: initialEdges },
+    })
 
   return (
     <div className="size-full">
@@ -79,6 +65,7 @@ export function Canvas() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onDelete={onDelete}
         colorMode={colorMode}
         // App theme tokens are correct before hydration (next-themes sets the
         // class on <html> early), so these colors never flash light → dark.
@@ -103,6 +90,7 @@ export function Canvas() {
       >
      
         <Controls />
+        <Cursors />
       </ReactFlow>
     </div>
   )
