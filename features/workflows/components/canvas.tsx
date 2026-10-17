@@ -3,9 +3,11 @@
 import { useSyncExternalStore } from "react"
 import { useTheme } from "next-themes"
 import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow";
+import { AvatarStack } from "@liveblocks/react-ui";
 import {
   Background,
   Controls,
+  Panel,
   ReactFlow,
   type ColorMode,
   type Edge,
@@ -91,6 +93,9 @@ export function Canvas() {
      
         <Controls />
         <Cursors />
+        <Panel position="top-right">
+          <AvatarStack />
+        </Panel>
       </ReactFlow>
     </div>
   )
