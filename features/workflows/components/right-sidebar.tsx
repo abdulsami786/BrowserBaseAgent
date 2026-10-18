@@ -1,7 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { useReactFlow, useStore } from "@xyflow/react"
 import { MoreHorizontal, Play, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 
 import {
   Accordion,
@@ -158,9 +160,40 @@ const definitions = Object.values(nodeRegistry)
 
 // The Toolbar tab: a button per node type that adds it to the canvas.
 function Palette() {
+  // Shared React Flow store (provider sits above canvas + sidebar).
+  const { getNodes, getViewport, addNodes } = useReactFlow<StepNodeType>()
+  // The canvas pane's measured size, used to find the center of the view.
+  const width = useStore((s) => s.width)
+  const height = useStore((s) => s.height)
+
   const add = (type: NodeType) => {
-    // TODO: add the clicked node to the canvas (one trigger max).
-    void type
+    const def = nodeRegistry[type]
+    const nodes = getNodes()
+
+    // A workflow has a single entry point, so only one trigger is allowed.
+    if (def.kind === "trigger" && nodes.some((n) => n.data.kind === "trigger")) {
+      toast.error("A workflow can only have one trigger.")
+      return
+    }
+
+    // Number duplicates ("Open URL 1", "Open URL 2") so they're easy to tell apart.
+    const count = nodes.filter((n) => n.data.type === type).length
+    const title = `${def.label} ${count + 1}`
+
+    // Screen point = flow point * zoom + offset, so the pane center in flow
+    // coordinates is (center - offset) / zoom.
+    const { x, y, zoom } = getViewport()
+    const position = {
+      x: (width / 2 - x) / zoom,
+      y: (height / 2 - y) / zoom,
+    }
+
+    addNodes({
+      id: crypto.randomUUID(),
+      type: "step",
+      position,
+      data: { type, kind: def.kind, title, values: {} },
+    })
   }
 
   return (
