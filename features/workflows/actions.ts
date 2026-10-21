@@ -1,11 +1,16 @@
 "use server"
 
 import { auth } from "@clerk/nextjs/server"
-import { tasks } from "@trigger.dev/sdk"
+import { runs, tasks } from "@trigger.dev/sdk"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
-import { createWorkflow, deleteWorkflow } from "@/features/workflows/data"
+import {
+  createWorkflow,
+  deleteWorkflow,
+  saveWorkflowGraph,
+} from "@/features/workflows/data"
+import type { WorkflowGraph } from "@/lib/db/schema"
 import { liveblocks } from "@/lib/liveblocks"
 import type { helloWorldTask } from "@/src/trigger/example"
 
@@ -42,15 +47,29 @@ export async function deleteWorkflowAction(id: string) {
   redirect("/")
 }
 
-export async function runWorkflowAction() {
+export async function runWorkflowAction({
+  id,
+  graph,
+}: {
+  id: string
+  graph: WorkflowGraph
+}) {
   const { orgId } = await auth()
 
   if (!orgId) {
     throw new Error("No active organization")
   }
 
+  await saveWorkflowGraph({ orgId, id, graph })
+
   const handle = await tasks.trigger<typeof helloWorldTask>("hello-world", { name: "right sidebar"})
 
   // handle.publicAccessToken is scoped to read only this run, safe for the browser
   return { id: handle.id, publicAccessToken: handle.publicAccessToken }
+}
+
+export async function cancelWorkflowRunAction(runId: string) {
+  const { orgId } = await auth()
+  if (!orgId) throw new Error("No active organization")
+  await runs.cancel(runId)
 }
