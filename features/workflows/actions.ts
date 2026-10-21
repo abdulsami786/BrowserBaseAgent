@@ -5,7 +5,8 @@ import { tasks } from "@trigger.dev/sdk"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
-import { createWorkflow } from "@/features/workflows/data"
+import { createWorkflow, deleteWorkflow } from "@/features/workflows/data"
+import { liveblocks } from "@/lib/liveblocks"
 import type { helloWorldTask } from "@/src/trigger/example"
 
 export async function createWorkflowAction(name: string) {
@@ -19,6 +20,26 @@ export async function createWorkflowAction(name: string) {
 
   revalidatePath("/workflows", "layout")
   redirect(`/workflows/${workflow.id}`)
+}
+
+export async function deleteWorkflowAction(id: string) {
+  const { orgId } = await auth()
+
+  if (!orgId) {
+    throw new Error("No active organization")
+  }
+
+  const workflow = await deleteWorkflow(orgId, id)
+
+  if (!workflow) {
+    throw new Error("Workflow not found")
+  }
+
+  // The workflow id doubles as its Liveblocks room id — clean it up too.
+  await liveblocks.deleteRoom(id)
+
+  revalidatePath("/workflows", "layout")
+  redirect("/")
 }
 
 export async function runWorkflowAction() {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { useReactFlow, useStore } from "@xyflow/react"
 import { MoreHorizontal, Play, Trash2 } from "lucide-react"
 import { toast } from "sonner"
@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
+import { deleteWorkflowAction } from "@/features/workflows/actions"
 import {
   nodeRegistry,
   type NodeDefinition,
@@ -141,6 +142,7 @@ function Inspector({ node }: { node: StepNodeType | undefined }) {
             <div key={field.key} className="flex flex-col gap-1.5">
               <Label htmlFor={field.key} className="text-xs">
                 {field.label}
+                {field.required && <span className="text-destructive">*</span>}
               </Label>
               <Field
                 field={field}
@@ -253,7 +255,9 @@ function Palette() {
 // ---------------------------------------------------------------------------
 
 // The "..." menu for workflow-level actions.
-function ActionsMenu() {
+function ActionsMenu({ workflowId }: { workflowId: string }) {
+  const [isPending, startTransition] = useTransition()
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -265,8 +269,15 @@ function ActionsMenu() {
         <DropdownMenuItem
           variant="destructive"
           className="text-xs [&_svg:not([class*='size-'])]:size-3.5"
-          onSelect={() => {
-            // TODO: delete the workflow, then navigate away.
+          disabled={isPending}
+          onSelect={(e) => {
+            // Keep the menu open while the delete runs so the disabled state
+            // stays visible; the transition lets the router follow the
+            // action's redirect home on success.
+            e.preventDefault()
+            startTransition(async () => {
+              await deleteWorkflowAction(workflowId)
+            })
           }}
         >
           <Trash2 />
@@ -297,7 +308,7 @@ function RunButton() {
 // The sidebar itself — header on top, then the Toolbar / Editor tabs.
 // ---------------------------------------------------------------------------
 
-export function RightSidebar() {
+export function RightSidebar({ workflowId }: { workflowId: string }) {
   const [tab, setTab] = useState("toolbar")
 
   // TODO: read the currently selected node from React Flow.
@@ -320,7 +331,7 @@ export function RightSidebar() {
     >
       <Tabs value={tab} onValueChange={setTab} className="size-full gap-0">
         <div className="flex items-center justify-between border-b border-border p-2">
-          <ActionsMenu />
+          <ActionsMenu workflowId={workflowId} />
           <RunButton />
         </div>
         <TabsList className="m-2 w-fit bg-background">
