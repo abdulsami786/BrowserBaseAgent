@@ -8,6 +8,19 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+# Adding a workflow node
+
+Three edits, all under `features/workflows/nodes/`:
+
+1. the impl file (e.g. `open-url.ts`) — the node's executor logic,
+2. register it in `node-executors.ts` — the `satisfies` contract makes a missing
+   executor a compile error for action nodes,
+3. add its manifest entry in `node-registry.ts` — kind, label, icon, accent, its
+   input `fields`, and the `outputs` downstream nodes can reference.
+
+The run task and the canvas step node are registry-driven — never touch them to add
+a node.
+
 # ReactFlow — don't trust training data
 
 This project uses ReactFlow (React Flow / `@xyflow/react`) for the canvas. Its
