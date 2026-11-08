@@ -17,7 +17,7 @@
       "source": "clerk/skills",
       "sourceType": "github",
       "skillPath": "skills/clerk-billing/SKILL.md",
-      "computedHash": "8526f71bab956e3e401e554cee719614f50dbb482d85eef416b9ac82acc121e0"
+      "computedHash": "ec63bdc2e82578c810f76a4ce3d17a2f9a972c6b5778199f55f7f6113c5fd85d"
     },
     "clerk-cli": {
       "source": "clerk/skills",
